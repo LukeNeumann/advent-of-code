@@ -1,32 +1,73 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <numeric>
+#include <fstream>
+#include <stdexcept>
 
 using entry_t = uint;
 
-// return a set of 2 entries such that the entry1 + entry2 = sum
-// if no such set of entries exists, return 0,0
-std::pair<entry_t, entry_t> find_sum_terms(std::vector<entry_t> entries, entry_t sum){
-    std::vector<entry_t>::const_iterator it1, it2;
-    for(it1 = entries.cbegin(); it1 != entries.cend(); ++it1) { 
-        for(it2 = entries.cbegin(); it2 != entries.cend(); ++it2) { 
-            if(it1 == it2) continue;
-            if(((*it1) + (*it2)) == sum) return std::pair<entry_t, entry_t>{*it1, *it2};
+// return a vector of n entries such that the sum of n entries = sum
+// if no such set of entries exists, return an empty vector
+std::vector<entry_t> find_sum_terms(std::vector<entry_t> entries, entry_t sum, size_t n_entries = 2, 
+                                    std::vector<entry_t> results = std::vector<entry_t>()){
+
+    // base case
+    if(n_entries == 0) {
+        if(sum == 0) { // success!
+            return results;
+        } else { 
+            return std::vector<entry_t>();
         }
     }
 
-    return std::pair<entry_t, entry_t>{0, 0};
+    for(int i = 0; i < entries.size(); i++) {
+        std::vector<entry_t> new_entries, new_results;
+
+        new_entries = entries;
+        new_entries.erase(new_entries.begin() + i);
+
+        new_results = results;
+        new_results.push_back(entries[i]);
+
+        auto answer = find_sum_terms(new_entries, sum - entries[i], n_entries - 1, new_results);
+        if(answer.size() != 0)
+            return answer;
+    }
+
+    return std::vector<entry_t>();
+}
+
+// print out the terms and their product
+void print_terms(std::vector<entry_t> terms) {
+    uint i = 0;
+    for(auto& term : terms) {
+        std::cout << (i++ == 0 ? "" : " * ");
+        std::cout << term;
+    }
+    if(terms.size() > 0)
+        std::cout << " = " << std::accumulate(terms.cbegin(), terms.cend(), 1, [](entry_t a, entry_t b) { return a * b; }) << std::endl;
 }
 
 int main(int argc, char** argv) {
     std::vector<entry_t> entries;
 
-    for(size_t i = 1; i < argc; ++i) {
-        std::string arg(argv[i]);
-        entries.push_back(std::stoi(arg));    
+    std::ifstream input_file{std::string(argv[1])};
+    if(input_file.is_open()) {
+        std::string line;
+        while(getline(input_file,line)) {
+            line.erase(std::find_if(line.begin(), line.end(), [](char c) { return c == ' '; } ), 
+                       line.end());
+            try {
+                entries.push_back(std::stoi(line, nullptr, 10));    
+            } catch(std::invalid_argument& e) {}
+        }
+    } else {
+        std::cout << "Failed to open input file" << std::endl;
     }
 
-    auto terms = find_sum_terms(entries, 2020);
-    std::cout << terms.first << " * " << terms.second << " = " << terms.first * terms.second << std::endl;
+    print_terms(find_sum_terms(entries, 2020, 2));
+    print_terms(find_sum_terms(entries, 2020, 3));
 
     return 0;
 }
