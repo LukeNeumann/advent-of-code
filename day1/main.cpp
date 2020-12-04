@@ -56,11 +56,7 @@ int main(int argc, char** argv) {
     if(input_file.is_open()) {
         std::string line;
         while(getline(input_file,line)) {
-            line.erase(std::find_if(line.begin(), line.end(), [](char c) { return c == ' '; } ), 
-                       line.end());
-            try {
-                entries.push_back(std::stoi(line, nullptr, 10));    
-            } catch(std::invalid_argument& e) {}
+            entries.push_back(std::stoi(line, nullptr, 10));    
         }
     } else {
         std::cout << "Failed to open input file" << std::endl;
