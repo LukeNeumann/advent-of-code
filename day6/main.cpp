@@ -14,7 +14,7 @@ struct group {
         sort_people();
     }
 
-    string get_set() const {
+    string get_union() const {
         return std::accumulate(people.cbegin(), people.cend(), people.front(),
                                [](const string& a, const string& b) {
                                    string result;
