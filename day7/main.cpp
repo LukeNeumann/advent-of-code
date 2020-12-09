@@ -13,6 +13,7 @@ using std::cout;
 using std::endl;
 
 struct rule {
+    rule() {}
     rule(string line) {
         std::smatch m;
         std::regex_match(line, m, std::regex("(.*) bags contain(.*)"));
@@ -37,24 +38,24 @@ struct rule {
     map<string, uint> bag_contains;
 };
 
-bool can_contain(const map<string, vector<pair<string, uint> > >& contains_graph, const string current, string target) {
-    for(auto const & c : contains_graph.at(current)) {
+bool can_contain(const map<string, rule>& rule_map, const string current, string target) {
+    for(auto const & c : rule_map.at(current).bag_contains) {
         if(c.first == target) return true;
     }
 
-    for(auto const & c : contains_graph.at(current)) {
-        if(can_contain(contains_graph, c.first, target)) return true; 
+    for(auto const & c : rule_map.at(current).bag_contains) {
+        if(can_contain(rule_map, c.first, target)) return true; 
     }
 
     return false;
 }
 
-uint num_bags_inside(const map<string, vector<pair<string, uint> > >& contains_graph, const string current) {
-    if(contains_graph.at(current).empty()) return 0;
+uint num_bags_inside(const map<string, rule>& rule_map, const string current) {
+    if(rule_map.at(current).bag_contains.empty()) return 0;
 
     uint num = 0;
-    for(auto const & c : contains_graph.at(current)) {
-        num += (1 + num_bags_inside(contains_graph, c.first)) * c.second;
+    for(auto const & c : rule_map.at(current).bag_contains) {
+        num += (1 + num_bags_inside(rule_map, c.first)) * c.second;
     }
 
     return num;
@@ -74,22 +75,19 @@ int main(int argc, char** argv) {
         std::cout << "Failed to open input file" << std::endl;
     }
 
-    map<string, vector<pair<string, uint> > > contains_graph;
+    map<string, rule> rule_map;
     for(auto& r : rules) {
-        contains_graph[r.bag_type] = vector<pair<string, uint> >();
-        for(auto& c : r.bag_contains) {
-            contains_graph[r.bag_type].push_back(c);
-        }
+        rule_map[r.bag_type] = r;
     }
 
     string target = "shiny gold";
     uint count = 0;
-    for(auto& node : contains_graph) {
-        count += can_contain(contains_graph, node.first, target);
+    for(auto& node : rule_map) {
+        count += can_contain(rule_map, node.first, target);
     }
 
     cout << count << endl;
-    cout << num_bags_inside(contains_graph, target) << endl;
+    cout << num_bags_inside(rule_map, target) << endl;
         
 
     return 0;
