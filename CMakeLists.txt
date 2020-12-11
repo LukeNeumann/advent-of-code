@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)
 project (advent-of-code-2020)
 
+add_subdirectory(aoc_common/aoc_input)
+
 add_subdirectory(day1)
 add_subdirectory(day2)
 add_subdirectory(day3)
@@ -10,3 +12,4 @@ add_subdirectory(day6)
 add_subdirectory(day7)
 add_subdirectory(day8)
 add_subdirectory(day9)
+add_subdirectory(day10)
