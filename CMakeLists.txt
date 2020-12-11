@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)
 project (advent-of-code-2020)
 
+find_package(Boost REQUIRED)
+add_library(boost INTERFACE IMPORTED)
+set_property(TARGET boost PROPERTY
+    INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR})
+
 add_subdirectory(aoc_common/aoc_input)
 
 add_subdirectory(day1)
@@ -13,3 +18,4 @@ add_subdirectory(day7)
 add_subdirectory(day8)
 add_subdirectory(day9)
 add_subdirectory(day10)
+add_subdirectory(day11)

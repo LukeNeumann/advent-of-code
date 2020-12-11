@@ -19,3 +19,17 @@ std::vector<T> get_input_perline(std::string filename) {
     return entries;
 }
 
+template <class T>
+T get_input_all(std::string filename) {
+    std::vector<std::string> lines;
+    std::ifstream input_file{filename};
+    if(input_file.is_open()) {
+        std::string line;
+        while(getline(input_file,line)) {
+            lines.push_back(line);
+        }
+    } else {
+        std::cout << "Failed to open input file" << std::endl;
+    }
+    return T(lines);
+}
