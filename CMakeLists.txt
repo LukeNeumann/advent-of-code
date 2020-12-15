@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)
 project (advent-of-code-2020)
 
+set(CMAKE_CXX_STANDARD 17)
+
 find_package(Boost REQUIRED)
 add_library(boost INTERFACE IMPORTED)
 set_property(TARGET boost PROPERTY
@@ -20,3 +22,4 @@ add_subdirectory(day9)
 add_subdirectory(day10)
 add_subdirectory(day11)
 add_subdirectory(day12)
+add_subdirectory(day13)
