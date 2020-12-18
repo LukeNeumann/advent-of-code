@@ -33,3 +33,18 @@ T get_input_all(std::string filename) {
     }
     return T(lines);
 }
+
+
+std::vector<std::string> split(std::string s, char separator) {
+    std::vector<std::string> result;
+    auto prev_sep = s.begin();
+    auto sep = find(s.begin(), s.end(), separator);
+    while(sep != s.end()) {
+        result.push_back(std::string(prev_sep,sep));
+        prev_sep = sep + 1;
+        sep = find(prev_sep, s.end(), separator);
+    }
+    result.push_back(std::string(prev_sep,sep));
+
+    return result;
+}
