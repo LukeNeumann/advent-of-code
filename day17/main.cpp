@@ -20,91 +20,127 @@ using std::pair;
 using std::cout;
 using std::endl;
 
-struct energy_source {
-    energy_source(vector<string> lines) {
-        size = lines.size();
-        // WEEEEEEEEE!!!!!!!
-        cells = vector<vector<vector<bool> > >(size, vector<vector<bool> >(size,vector<bool>(size,false)));
 
-        for(uint x = 0; x < size; x++) {
-            for(uint y = 0; y < size; y++) {
-                cells[x][y][0] = lines[y][x] == '#';
+template<uint D, class T>
+struct dvec : public vector<dvec<D-1,T> > {
+    dvec(int n = 0, const T& val = T()) : vector<dvec<D-1,T> >(n, dvec<D-1,T>(n, val)) {}
+    dvec(vector<string> lines) {
+        if constexpr(D > 2) {
+            this->push_back(dvec<D-1,T>(lines));
+        } else {
+            //initialize the inner 2 dimensions with lines
+            vector<dvec<1,T> >(0, dvec<1,T>());
+            for(auto& line : lines) {
+                dvec<1,T> new_row{};
+                for(auto& c : line) {
+                    new_row.push_back(c == '#');
+                }
+                this->push_back(new_row);
             }
         }
+    }
+
+    void set_all(const T& val = T()) {
+        for(auto& e : *this) e.set_all(val);
     }
 
     void increase_size() {
-        for(uint x = 0; x < size; x++) {
-            for(uint y = 0; y < size; y++) {
-                cells[x][y].insert(cells[x][y].begin(),false);
-                cells[x][y].push_back(false);
-            }
-            cells[x].insert(cells[x].begin(),vector<bool>(size+2, false));
-            cells[x].push_back(vector<bool>(size+2, false));
-        }
-
-        cells.insert(cells.begin(),vector<vector<bool> >(size+2, vector<bool>(size+2, false)));
-        cells.push_back(vector<vector<bool> >(size+2, vector<bool>(size+2, false)));
-
-        size += 2;
+        for(auto& e : *this) e.increase_size();
+        dvec<D-1,T> d = this->front();
+        d.set_all(); // reset values for new sections
+        this->insert(this->begin(),d);
+        this->insert(this->end(),d);
     }
 
-    void cycle() {
-        increase_size();
-        auto prev_cells = cells;
-        for(uint x = 0; x < size; x++) {
-            for(uint y = 0; y < size; y++) {
-                for(uint z = 0; z < size; z++) {
-                    cout << "  ";
-                    uint num_active_neighbors = 0;
-                    for(int xoff = ((x==0) ? 0 : -1); xoff <= ((x==size-1) ? 0 : 1); xoff++) {
-                    for(int yoff = ((y==0) ? 0 : -1); yoff <= ((y==size-1) ? 0 : 1); yoff++) {
-                    for(int zoff = ((z==0) ? 0 : -1); zoff <= ((z==size-1) ? 0 : 1); zoff++) {
-                        if(xoff == 0 && yoff == 0 && zoff == 0) continue;
-                        num_active_neighbors += prev_cells[x + xoff][y + yoff][z + zoff];
-                        cout << x+xoff <<","<< y+yoff <<","<< z+zoff << " ";
-                    }}}
-                    cout << endl;
-
-                    cout << x << "," << y << "," << z << " " << num_active_neighbors << endl;
-
-                    if(prev_cells[x][y][z] == true) {
-                        cells[x][y][z] = num_active_neighbors == 2 || num_active_neighbors == 3;
-                    } else {
-                        cells[x][y][z] = num_active_neighbors == 3;
-                    }
-                }
-            }
-        }
+    uint count() {
+        uint result = 0;
+        for(auto& e : *this) result += e.count();
+        //cout << D << " " << this->size() << " " << result << endl;
+        return result;
     }
-
-    void cycle(uint count) {
-        for(uint i = 0; i < count; i++) cycle();
-    }
-
-    uint count_active_cells() {
-        uint sum = 0;
-        for(uint x = 0; x < size; x++) {
-            for(uint y = 0; y < size; y++) {
-                for(uint z = 0; z < size; z++) {
-                    sum += cells[x][y][z];
-                }
-            }
-        }
-        return sum;
-    }
-
-    private:
-    vector<vector<vector<bool> > > cells;
-    uint size;
 };
 
+template<class T>
+struct dvec<1,T> : public vector<T> {
+    dvec(int n = 0, const T& val = T()) : vector<T>(n,val) {}
+
+    void set_all(const T& val = T()) {
+        for(uint i = 0; i < this->size(); i++) (*this)[i] = val;
+    }
+
+    void increase_size() {
+        this->insert(this->begin(),T());
+        this->insert(this->end(),T());
+    }
+
+    uint count() {
+        uint result = std::accumulate(this->begin(), this->end(), 0);
+        //cout << 1 << " " << this->size() << " " << result << endl;
+        return result;
+    }
+};
+
+template<uint D, class T>
+uint count_adjacent(dvec<D,T>& d, vector<uint> indices) {
+    uint result = 0;
+    uint index = indices.front(); indices.erase(indices.begin());
+    for(uint i = ((index==0) ? 0 : index - 1); i <= ((index==d.size()-1) ? index : index + 1); i++) {
+        //cout << i << " ";
+        result += count_adjacent<D-1,T>(d[i], indices);
+    }
+    return result;
+}
+template<>
+uint count_adjacent<1,bool>(dvec<1,bool>& d, vector<uint> indices) {
+    uint result = 0;
+    uint index = indices.front(); indices.erase(indices.begin());
+    for(uint i = ((index==0) ? 0 : index - 1); i <= ((index==d.size()-1) ? index : index + 1); i++) {
+        result += d[i];
+        //cout << i << ": " << d[i] << endl;
+    }
+    return result;
+}
+
+template<uint D, uint P, class T>
+void _cycle(dvec<P,T>& prev_d, dvec<D,T>& d, vector<uint> indices = {}) {
+    for(uint i = 0; i < d.size(); i++) {
+        auto new_indices = indices;
+        new_indices.push_back(i);
+        if constexpr(D > 1) {
+            _cycle<D-1,P,T>(prev_d, d[i], new_indices);
+        } else {
+            uint active_neighbors = count_adjacent(prev_d, new_indices) - d[i];
+            //for(auto& ind : new_indices) cout << ind << " ";
+            //cout << "neighbors=" << active_neighbors << " active=" << d[i] << endl;
+
+            if(d[i] == true) {
+                d[i] = active_neighbors == 2 || active_neighbors == 3;
+            } else {
+                d[i] = active_neighbors == 3;
+            }
+        }
+    }
+}
+
+template<uint D, class T>
+void cycle(dvec<D,T>& d, uint count) {
+    for(uint i = 0; i < count; i++) {
+        d.increase_size();
+        auto prev_d = d;
+        _cycle<D,D,T>(prev_d, d);
+    }
+}
+
 int main(int argc, char** argv) {
-    auto e = get_input_all<energy_source>(string(argv[1]));
+    auto lines = get_input_perline<string>(string(argv[1]));
 
-    e.cycle(6);
+    dvec<3,bool> d3(lines);
+    dvec<4,bool> d4(lines);
 
-    cout << e.count_active_cells() << endl;
+    cycle<3,bool>(d3, 6);
+    cout << d3.count() << endl;
+    cycle<4,bool>(d4, 6);
+    cout << d4.count() << endl;
 
     return 0;
 }
