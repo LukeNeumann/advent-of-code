@@ -48,3 +48,10 @@ std::vector<std::string> split(std::string s, char separator) {
 
     return result;
 }
+
+std::string strip(std::string s, char separator) {
+    std::string::iterator it1, it2;
+    for(it1 = s.begin(); (*it1) == separator; it1++) {}
+    for(it2 = s.end() - 1; (*it2) == separator; it2--) {}
+    return std::string(it1, it2+1);
+}
