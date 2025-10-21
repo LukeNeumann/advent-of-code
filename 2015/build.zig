@@ -21,7 +21,16 @@ pub fn build(b: *std.Build) void {
     // target and optimize options) will be listed when running `zig build --help`
     // in this directory.
 
-    for (1..3) |day| {
+    const setup_exe = b.addExecutable(.{
+        .name = "setup",
+        .root_module = b.createModule(.{ .root_source_file = b.path("setup.zig"), .target = target, .optimize = optimize }),
+    });
+    b.installArtifact(setup_exe);
+    const setup_step = b.step("setup", "setup directories and files if they don't exist");
+    const setup_cmd = b.addRunArtifact(setup_exe);
+    setup_step.dependOn(&setup_cmd.step);
+
+    for (1..26) |day| {
         const day_string = b.fmt("day{d:0>2}", .{day});
         const mod = b.addModule(day_string, .{
             .root_source_file = b.path(b.fmt("{s}/root.zig", .{day_string})),
@@ -43,6 +52,7 @@ pub fn build(b: *std.Build) void {
         const run_cmd = b.addRunArtifact(exe);
         run_step.dependOn(&run_cmd.step);
         run_cmd.step.dependOn(b.getInstallStep());
+        run_cmd.step.dependOn(setup_step);
 
         if (b.args) |args| {
             run_cmd.addArgs(args);
