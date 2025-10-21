@@ -16,8 +16,7 @@ pub fn setup_day(day_string: []u8) !void {
     };
     defer input_file.close();
     if (new_input_file) {
-        std.debug.print("writing new input.txt in {s}\n", .{day_string});
-        try input_file.writeAll("no input entered yet");
+        std.debug.print("touching new input.txt in {s}\n", .{day_string});
     }
 
     var new_root_file = false;
@@ -35,6 +34,11 @@ pub fn setup_day(day_string: []u8) !void {
             \\const input = @embedFile("input.txt");
             \\
             \\pub fn solve() !void {
+            \\    var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
+            \\    const alloc = gpa.allocator();
+            \\    defer _ = gpa.deinit(); 
+            \\    _ = alloc;
+            \\
             \\    var it = std.mem.tokenizeScalar(u8, input, '\n');
             \\    while (it.next()) |line| {
             \\        _ = line;
@@ -45,6 +49,8 @@ pub fn setup_day(day_string: []u8) !void {
     }
 }
 
+pub fn get_inputs() !void {}
+
 pub fn main() !void {
     var general_purpose_allocator: std.heap.GeneralPurposeAllocator(.{}) = .init;
     const gpa = general_purpose_allocator.allocator();
@@ -53,4 +59,6 @@ pub fn main() !void {
         const day_str = try std.fmt.allocPrint(gpa, "day{d:0>2}", .{day});
         try setup_day(day_str);
     }
+
+    try get_inputs();
 }
