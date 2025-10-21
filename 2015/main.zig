@@ -1,6 +1,5 @@
-const day01 = @import("day01");
-const day02 = @import("day02");
+const day = @import("day");
 
 pub fn main() !void {
-    try day02.solve();
+    try day.solve();
 }
