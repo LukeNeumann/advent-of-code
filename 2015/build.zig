@@ -30,6 +30,13 @@ pub fn build(b: *std.Build) void {
     const setup_cmd = b.addRunArtifact(setup_exe);
     setup_step.dependOn(&setup_cmd.step);
 
+    const openssl = b.dependency("openssl", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const crypto_lib = openssl.artifact("crypto");
+    const ssl_lib = openssl.artifact("ssl");
+
     for (1..26) |day| {
         const day_string = b.fmt("day{d:0>2}", .{day});
         const mod = b.addModule(day_string, .{
@@ -47,6 +54,13 @@ pub fn build(b: *std.Build) void {
                 },
             }),
         });
+
+        if (day == 4) {
+            mod.linkLibrary(ssl_lib);
+            mod.linkLibrary(crypto_lib);
+            mod.addIncludePath(b.path("include"));
+        }
+
         b.installArtifact(exe);
         const run_step = b.step(b.fmt("run_{s}", .{day_string}), "Run the day");
         const run_cmd = b.addRunArtifact(exe);
