@@ -42,4 +42,26 @@ pub fn build(b: *std.Build) void {
     const run_cmd2 = b.addRunArtifact(exe2);
     run_step2.dependOn(&run_cmd2.step);
     run_cmd2.step.dependOn(b.getInstallStep());
+
+    const cpython = b.dependency("cpython", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const hashlib = cpython.artifact("hashlib");
+    const exe3 = b.addExecutable(.{
+        .name = "py_md5",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("py_md5.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{},
+        }),
+    });
+    exe3.linkLibrary(hashlib);
+    exe3.addIncludePath(b.path("include"));
+    b.installArtifact(exe3);
+    const run_step3 = b.step("run_c", "");
+    const run_cmd3 = b.addRunArtifact(exe3);
+    run_step3.dependOn(&run_cmd3.step);
+    run_cmd3.step.dependOn(b.getInstallStep());
 }

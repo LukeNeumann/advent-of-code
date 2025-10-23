@@ -6,6 +6,9 @@
             .url = "git+https://github.com/kassane/openssl-zig#7f172a8014639b8fa1f234a95226e5fc6ac06146",
             .hash = "openssl-3.6.0-wZcA73pS8QGEW9ujFR90leDIkLXDu8YqJI9N5V5s1qFW",
         },
+        .cpython = .{
+            .path = "cpython/",
+        },
     },
     .paths = .{""},
     .fingerprint = 0x91113726c1c8cf36,

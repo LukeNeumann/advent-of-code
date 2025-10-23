@@ -1,6 +1,6 @@
 const std = @import("std");
 const c = @cImport({
-    @cInclude("openssl/md5.h");
+    @cInclude("cpython/md5.h");
 });
 pub fn main() !void {
     var out: [std.crypto.hash.Md5.digest_length]u8 = undefined;
