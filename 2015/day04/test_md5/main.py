@@ -1,8 +1,8 @@
 
 from hashlib import md5
-init = 'yzbqklnj'.encode()
-for i in range(10_000_000):
-    h = md5(init)
-    # if h[:6] == '000000':
-    #     print(i)
-    #     break
+init = 'yzbqklnj'
+for i in range(100_000_000):
+    h = md5((init + str(i)).encode()).hexdigest()
+    if h[:6] == '000000':
+        print(i)
+        break

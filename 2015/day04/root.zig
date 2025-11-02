@@ -1,8 +1,5 @@
 const std = @import("std");
 const input = @embedFile("input.txt");
-const c = @cImport({
-    @cInclude("openssl/md5.h");
-});
 
 pub fn solve() !void {
     var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
@@ -19,7 +16,10 @@ pub fn solve() !void {
         try data.append(alloc, '0');
         while (true) : (i += 1) {
             //std.debug.print("\r{d}", .{i});
-            _ = c.MD5(data.items.ptr, data.items.len, &out);
+            //_ = c.MD5(data.items.ptr, data.items.len, &out);
+            var md5 = std.crypto.hash.Md5.init(.{});
+            md5.update(data.items);
+            md5.final(&out);
             const part2_match = std.mem.startsWith(u8, &out, &[3]u8{ 0, 0, 0 });
             const part1_match = std.mem.startsWith(u8, &out, &[2]u8{ 0, 0 }) and out[2] < 9;
 
