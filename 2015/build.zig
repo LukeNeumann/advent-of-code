@@ -25,9 +25,10 @@ pub fn build(b: *std.Build) void {
         .name = "setup",
         .root_module = b.createModule(.{ .root_source_file = b.path("setup.zig"), .target = target, .optimize = optimize }),
     });
-    b.installArtifact(setup_exe);
+    const setup_install_step = b.addInstallArtifact(setup_exe, .{});
     const setup_step = b.step("setup", "setup directories and files if they don't exist");
     const setup_cmd = b.addRunArtifact(setup_exe);
+    setup_step.dependOn(&setup_install_step.step);
     setup_step.dependOn(&setup_cmd.step);
 
     const openssl = b.dependency("openssl", .{
@@ -61,11 +62,11 @@ pub fn build(b: *std.Build) void {
             mod.addIncludePath(b.path("include"));
         }
 
-        b.installArtifact(exe);
+        const install_step = b.addInstallArtifact(exe, .{});
         const run_step = b.step(b.fmt("run_{s}", .{day_string}), "Run the day");
         const run_cmd = b.addRunArtifact(exe);
         run_step.dependOn(&run_cmd.step);
-        run_cmd.step.dependOn(b.getInstallStep());
+        run_cmd.step.dependOn(&install_step.step);
         run_cmd.step.dependOn(setup_step);
 
         if (b.args) |args| {
